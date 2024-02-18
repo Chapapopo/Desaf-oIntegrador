@@ -5,7 +5,6 @@ const deleteProducts = async (id) => {
     const result = await Product.findByIdAndDelete(id);
 
     console.log(result);
-
 };
 
 deleteProducts();

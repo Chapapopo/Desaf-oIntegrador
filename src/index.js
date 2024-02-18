@@ -7,6 +7,11 @@ import GestionProductos from "./GestionProductos.js";
 import searchProducts from "./dao/crud/find.js";
 import searchOneProducts from "./dao/crud/findone.js";
 import deleteProducts from "./dao/crud/delete.js";
+import createProducts from "./dao/crud/create.js";
+import updateProducts from "./dao/crud/update.js";
+import createCarts from "./dao/crud/createCarts.js";
+import updateCarts from "./dao/crud/updateCarts.js";
+import updateProducts from "./dao/crud/update.js";
 import "./connection.js";
 
 
@@ -45,10 +50,10 @@ app.get('/home', async (req, res) => {
 });
 
 // Ruta para mostrar un producto por ID
-app.get('/home/:code', async (req, res) => {
+app.get('/home/:id', async (req, res) => {
   try {
-    const productcode = parseInt(req.params.code);
-    const producto = await searchOneProducts(productcode);
+    const productid = parseInt(req.params.id);
+    const producto = await searchOneProducts(productid);
     // Crear un nuevo array y agregar el producto
     const productos = [];
     productos.push(producto);
@@ -122,35 +127,49 @@ io.on("connection", (socket) => {
 });
 
 // Ruta para agregar un nuevo producto (POST)
-app.post("/productos", (req, res) => {
+app.post("/productos", async (req, res) => {
   const datosProducto = req.body; // Obtener datos del cuerpo de la solicitud
-  gestion.añadirProducto(datosProducto);
+  createProducts(datosProducto);
 
   // Actualizar la lista de productos
-  const ArrayProductos = gestion.mostrarProductos();
+  try {
+    const ArrayProductos = await searchProducts();
+    console.log(ArrayProductos);
 
-  // Emitir el evento "listaActualizada" a todos los clientes conectados
-  io.emit("listaActualizada", { productos: ArrayProductos });
+    // Emitir el evento "listaActualizada" a todos los clientes conectados
+    io.emit("listaActualizada", { productos: ArrayProductos });
 
-  // Redirigir al usuario a la página principal con la lista actualizada
-  res.redirect('/realtimeproducts');
+    // Redirigir al usuario a la página principal con la lista actualizada
+    res.redirect('/realtimeproducts');
+  } catch (error) {
+    // Manejar el error
+    console.error(error);
+    res.status(500).send('Error al buscar productos');
+  }
 });
 
 // Ruta para actualizar un campo específico del producto por ID
-app.put("/productos/:id", (req, res) => {
+app.put("/productos/:id", async (req, res) => {
   const productoId = parseInt(req.params.id);
   const { campo, nuevoValor } = req.body;
 
-  gestion.actualizarProducto({ productoId, campo, nuevoValor });
+  updateProducts({ productoId, campo, nuevoValor })
 
   // Actualizar la lista de productos
-  const ArrayProductos = gestion.mostrarProductos();
+  try {
+    const ArrayProductos = await searchProducts();
+    console.log(ArrayProductos);
 
-  // Emitir el evento "listaActualizada" a todos los clientes conectados
-  io.emit("listaActualizada", { productos: ArrayProductos });
+    // Emitir el evento "listaActualizada" a todos los clientes conectados
+    io.emit("listaActualizada", { productos: ArrayProductos });
 
-  // Redirigir al usuario a la página principal con la lista actualizada
-  res.redirect('/realtimeproducts');
+    // Redirigir al usuario a la página principal con la lista actualizada
+    res.redirect('/realtimeproducts');
+  } catch (error) {
+    // Manejar el error
+    console.error(error);
+    res.status(500).send('Error al buscar productos');
+  }
 });
 
 // Ruta para borrar un producto por ID
@@ -172,9 +191,7 @@ app.delete("/productos/:id", async (req, res) => {
 
 // Ruta para crear un nuevo carrito
 app.post("/carts", (req, res) => {
-  const products = req.body.products || []; // Obtener el array de productos desde el cuerpo de la solicitud
-  const nuevoCarrito = gestion.crearNuevoCarrito(products);
-  res.json({ message: "Nuevo carrito creado", cart: nuevoCarrito });
+  createCarts();
 });
 
 // Ruta para agregar un porducto a un carrito
@@ -183,7 +200,7 @@ app.post("/carts/:id/product/:idProducto", (req, res) => {
   const productoId = parseInt(req.params.idProducto);
 
   // Llama al método para agregar el producto al carrito
-  gestion.agregarProductoAlCarrito(carritoId, productoId);
+  updateCarts(carritoId, productoId);
 
   res.json({ message: `Producto con ID ${productoId} agregado al carrito ${carritoId} correctamente.` });
 });
