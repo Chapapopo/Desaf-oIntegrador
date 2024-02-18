@@ -2,7 +2,7 @@ import express from "express";
 import { engine } from "express-handlebars";
 import { __dirname } from "./utils.js";
 import * as path from "path";
-import { Server } from "socket.io";/* 
+import { Server } from "socket.io";
 import searchProducts from "./dao/crud/find.js";
 import searchOneProducts from "./dao/crud/findone.js";
 import deleteProducts from "./dao/crud/delete.js";
@@ -11,7 +11,7 @@ import updateProducts from "./dao/crud/update.js";
 import createCarts from "./dao/crud/createCarts.js";
 import updateCarts from "./dao/crud/updateCarts.js"; 
 import createMessage from "./dao/crud/createMessage.js";
-import getAllMessages from "./dao/crud/findMessage.js";*/
+import getAllMessages from "./dao/crud/findMessage.js";
 import "./connection.js";
 
 
@@ -33,7 +33,7 @@ app.use("/", express.static(__dirname + "/public"));
 app.get("/chat", (req, res) => {
   res.render("chat");
 });
-/* 
+
 app.get('/home', async (req, res) => {
   try {
     const ArrayProductos = await searchProducts();
@@ -85,7 +85,7 @@ app.get('/carts/:id', (req, res) => {
   productos.push(productosEnCarrito);
 
   res.render('carts', { productos: productosEnCarrito });
-}); */
+});
 
 const message = [];
 
@@ -122,7 +122,7 @@ io.on("connection", (socket) => {
     io.sockets.emit("userMessage", messages);
   });
 });
-/* 
+
 // Ruta para agregar un nuevo producto (POST)
 app.post("/productos", async (req, res) => {
   const datosProducto = req.body; // Obtener datos del cuerpo de la solicitud
@@ -200,4 +200,4 @@ app.post("/carts/:id/product/:idProducto", (req, res) => {
   updateCarts(carritoId, productoId);
 
   res.json({ message: `Producto con ID ${productoId} agregado al carrito ${carritoId} correctamente.` });
-}); */
+});
