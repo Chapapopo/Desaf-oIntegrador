@@ -2,16 +2,16 @@ import express from "express";
 import { engine } from "express-handlebars";
 import { __dirname } from "./utils.js";
 import * as path from "path";
-import { Server } from "socket.io";
-import GestionProductos from "./GestionProductos.js";
+import { Server } from "socket.io";/* 
 import searchProducts from "./dao/crud/find.js";
 import searchOneProducts from "./dao/crud/findone.js";
 import deleteProducts from "./dao/crud/delete.js";
 import createProducts from "./dao/crud/create.js";
 import updateProducts from "./dao/crud/update.js";
 import createCarts from "./dao/crud/createCarts.js";
-import updateCarts from "./dao/crud/updateCarts.js";
-import updateProducts from "./dao/crud/update.js";
+import updateCarts from "./dao/crud/updateCarts.js"; 
+import createMessage from "./dao/crud/createMessage.js";
+import getAllMessages from "./dao/crud/findMessage.js";*/
 import "./connection.js";
 
 
@@ -24,9 +24,6 @@ const server = app.listen(PORT, () => {
 
 const io = new Server(server);
 
-app.use(express.json())
-const gestion = new GestionProductos('./src/dao/productos.json', './src/dao/carrito.json');
-
 app.engine("handlebars", engine());
 app.set("view engine", "handlebars");
 app.set("views", path.resolve(__dirname + "/views"));
@@ -36,7 +33,7 @@ app.use("/", express.static(__dirname + "/public"));
 app.get("/chat", (req, res) => {
   res.render("chat");
 });
-
+/* 
 app.get('/home', async (req, res) => {
   try {
     const ArrayProductos = await searchProducts();
@@ -88,7 +85,7 @@ app.get('/carts/:id', (req, res) => {
   productos.push(productosEnCarrito);
 
   res.render('carts', { productos: productosEnCarrito });
-});
+}); */
 
 const message = [];
 
@@ -100,6 +97,7 @@ io.on("connection", (socket) => {
   // Mesaje de Coneccion
   socket.on("userConnection", (data) => {
     userName = data.user;
+    userMessage = data.message;
     message.push({
       id: socket.id,
       info: "connection",
@@ -110,22 +108,21 @@ io.on("connection", (socket) => {
     io.sockets.emit("userConnection", message);
   });
   // Mensaje de Mesaje enviado
-  socket.on("userMessage", (data) => {
-    message.push({
-      id: socket.id,
-      info: "message",
-      name: userName,
-      message: data.message,
-      date: new Date().toTimeString(),
-    });
-    io.sockets.emit("userMessage", message);
-  });
-  //Mensage Usuario escribiendo
-  socket.on("typing", (data) => {
-    socket.broadcast.emit("typing", data);
+  socket.on("userMessage", async (data) => {
+    userName = data.user;
+    userMessage = data.message;
+
+    // Crea el mensaje y espera a que se guarde en la base de datos
+    await createMessage(userName, userMessage);
+
+    // Obtiene todos los mensajes de la base de datos
+    const messages = await getAllMessages();
+
+    // Emite los mensajes a todos los clientes conectados
+    io.sockets.emit("userMessage", messages);
   });
 });
-
+/* 
 // Ruta para agregar un nuevo producto (POST)
 app.post("/productos", async (req, res) => {
   const datosProducto = req.body; // Obtener datos del cuerpo de la solicitud
@@ -203,4 +200,4 @@ app.post("/carts/:id/product/:idProducto", (req, res) => {
   updateCarts(carritoId, productoId);
 
   res.json({ message: `Producto con ID ${productoId} agregado al carrito ${carritoId} correctamente.` });
-});
+}); */
